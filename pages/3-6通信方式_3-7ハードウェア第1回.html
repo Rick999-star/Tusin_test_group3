@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第1回: 総合テスト</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        .quiz-option.selected {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #2563eb;
+        }
+        .quiz-option.correct {
+            background-color: #22c55e;
+            color: white;
+        }
+        .quiz-option.incorrect {
+            background-color: #ef4444;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div id="quiz-container" class="w-full max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+        <div id="question-area">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">第1回: 通信・ハードウェア総合テスト</h1>
+            <p class="text-gray-600 mb-4">全20問</p>
+            <div class="h-2 w-full bg-gray-200 rounded-full mb-6">
+                <div id="progress-bar" class="h-2 bg-blue-500 rounded-full transition-all duration-300" style="width: 0%;"></div>
+            </div>
+
+            <p class="text-lg text-gray-700 mb-1 font-semibold">
+                <span id="question-number"></span>. <span id="question-text"></span>
+            </p>
+            <div id="answer-options" class="mt-4 space-y-3">
+                <!-- Answers will be loaded here -->
+            </div>
+            <div id="fill-in-the-blank-area" class="mt-4">
+                 <!-- Fill in the blank input will be loaded here -->
+            </div>
+            <div id="short-answer-area" class="mt-4">
+                <!-- Short answer input will be loaded here -->
+            </div>
+
+            <div id="feedback-area" class="mt-4 p-4 rounded-lg text-center font-bold hidden"></div>
+            
+            <div id="explanation-area" class="mt-4 p-4 bg-gray-50 rounded-lg hidden">
+                <h3 class="font-bold text-gray-800">解説</h3>
+                <p id="explanation-text" class="text-gray-700 mt-1"></p>
+            </div>
+
+        </div>
+
+        <div id="result-area" class="hidden text-center">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">テスト終了！</h2>
+            <p class="text-xl text-gray-700 mb-2">あなたのスコアは...</p>
+            <p class="text-5xl font-bold text-blue-500 mb-6"><span id="score"></span> / 100</p>
+            <p class="text-lg text-gray-600 mb-6"><span id="correct-answers"></span>問正解 / 20問中</p>
+            <button onclick="location.reload()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg transition-transform transform hover:scale-105">もう一度挑戦する</button>
+            <a href="../index.html" class="mt-4 inline-block text-blue-500 hover:underline">トップページに戻る</a>
+        </div>
+        
+        <div class="mt-6 flex justify-end">
+            <button id="submit-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105">解答</button>
+            <button id="next-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg hidden transition-transform transform hover:scale-105">次の問題へ</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            { question: 'ISDN基本インターフェースのDチャネルの伝送速度はいくつか？', type: 'multiple-choice', options: ['8kbps', '16kbps', '64kbps', '128kbps'], answer: '16kbps', explanation: '基本インターフェース(BRI)におけるDチャネルの伝送速度は16kbpsです。' },
+            { question: 'キャッシュメモリへの書き込み方式で、キャッシュ変更時に即座にメインメモリにも書き込む方式を何というか？', type: 'multiple-choice', options: ['ライトバック方式', 'ライトスルー方式', 'キャッシュヒット方式', 'キャッシュミス方式'], answer: 'ライトスルー方式', explanation: 'ライトスルー方式は、データの整合性を保ちやすい反面、書き込みが頻繁に発生します。一方、ライトバック方式は、変更を一旦キャッシュにとどめておくため高速ですが、制御が複雑になります。' },
+            { question: 'ISDNの基本インターフェースであるBRIの正式名称として正しいものはどれか？', type: 'multiple-choice', options: ['Basic Rate Interface', 'Broadband Rate Interface', 'Binary Rate Interface', 'Basic Radio Interface'], answer: 'Basic Rate Interface', explanation: 'BRIはBasic Rate Interfaceの略で、「基本速度インターフェース」と訳されます。' },
+            { question: 'PCと周辺機器を無線で接続する短距離通信技術は何か？', type: 'multiple-choice', options: ['Wi-Fi', 'NFC', 'Bluetooth', 'LTE'], answer: 'Bluetooth', explanation: 'Bluetoothは、マウスやキーボード、ヘッドホンなどの接続に広く利用されています。' },
+            { question: 'BRIの最大通信速度は (______) kbpsである。', type: 'fill-in-the-blank', answer: '144', explanation: 'BRIはBチャネル2本(64×2=128kbps)とDチャネル1本(16kbps)を合わせて最大144kbpsの通信が可能です。' },
+            { question: 'CPUが探しているデータがキャッシュメモリに存在する状態を (__________) という。', type: 'fill-in-the-blank', answer: 'キャッシュヒット', explanation: 'データが存在する場合をキャッシュヒット、存在しない場合をキャッシュミスと呼びます。ヒット率が高いほど処理が高速になります。' },
+            { question: '日本におけるISDNサービスが原則として終了したのは西暦何年か？', type: 'fill-in-the-blank', answer: '2024', explanation: 'ISDNのディジタル通信モードは、設備の老朽化などを理由に2024年1月にサービスを終了しました。' },
+            { question: 'ISDNのBチャネルの伝送速度は (______) kbpsである。', type: 'fill-in-the-blank', answer: '64', explanation: 'Bチャネルはユーザー情報を伝送するためのチャネルで、伝送速度は64kbpsです。' },
+            { question: 'キャッシュメモリの主な役割として最も適切なものはどれか？', type: 'multiple-choice', options: ['CPUと主記憶装置の処理速度の差を埋める', 'データを永続的に保存する', 'OSを起動する', '外部機器と通信する'], answer: 'CPUと主記憶装置の処理速度の差を埋める', explanation: 'CPUと主記憶装置には速度差があるため、その差を埋めるために、より高速なキャッシュメモリを間に置くことで、コンピュータ全体の処理性能を向上させます。' },
+            { question: 'アナログ映像信号を伝送するための端子で、青い台形の15ピンコネクタが特徴的なものは (______) 端子と呼ばれることが多い。', type: 'fill-in-the-blank', answer: 'VGA', explanation: 'このコネクタの規格名はD-Sub 15ピンですが、一般的にVGA端子として知られています。' },
+            { question: '主記憶装置で一般的に使われる半導体メモリは何か？', type: 'multiple-choice', options: ['SRAM', 'DRAM', 'Flash Memory', 'ROM'], answer: 'DRAM', explanation: '主記憶装置には、安価で大容量化しやすいDRAM (Dynamic Random Access Memory)が広く用いられています。' },
+            { question: 'ISDNの基本インターフェース(BRI)の構成として正しいものはどれか？', type: 'multiple-choice', options: ['1B+1D', '2B+1D', '23B+1D', '1B+2D'], answer: '2B+1D', explanation: 'ISDNの基本インターフェース(BRI)は、2本のBチャネル(64kbps)と1本のDチャネル(16kbps)で構成されます。' },
+            { question: 'IP電話などで利用される呼制御プロトコルとして適切なものを一つ選びなさい。', type: 'multiple-choice', options: ['HTTP', 'FTP', 'SIP', 'SMTP'], answer: 'SIP', explanation: 'SIP (Session Initiation Protocol)は、IPネットワーク上で音声や映像のセッションを確立・制御するための代表的なプロトコルです。' },
+            { question: '通信や通話を目的として、通信設備を一時的に独占することを何と呼ぶか？', type: 'fill-in-the-blank', answer: '呼', explanation: '「呼」は電話をかけたり受けたりして回線を使用することを指す専門用語です。' },
+            { question: 'ハードディスクやSSDは (______) 記憶装置に分類される。', type: 'fill-in-the-blank', answer: '補助', explanation: '補助記憶装置は、電源を切ってもデータが消えない不揮発性の記憶装置で、主記憶装置を補助する役割を持ちます。' },
+            { question: 'ISDNにおいて、主に呼制御などの制御信号の伝送に用いられるチャネルはどれか？', type: 'multiple-choice', options: ['Bチャネル', 'Dチャネル', 'Hチャネル', 'Eチャネル'], answer: 'Dチャネル', explanation: 'Dチャネルは呼制御情報などの信号を伝送するためのチャネルです。Bチャネルは音声やデータなどのユーザー情報を伝送します。' },
+            { question: '次のうち、コンピュータの入力装置に分類されるものはどれか？', type: 'multiple-choice', options: ['プリンタ', 'ディスプレイ', 'マウス', 'スピーカー'], answer: 'マウス', explanation: 'マウスはポインティングデバイスであり、入力装置の一種です。プリンタやディスプレイは出力装置に分類されます。' },
+            { question: '主に通信制御用の信号を送受信するチャネルを (______) チャネルという。', type: 'fill-in-the-blank', answer: 'D', explanation: 'Dチャネルは呼制御情報などの信号を伝送するためのチャネルです。' },
+            { question: 'PRIで主に利用される伝送媒体は何か？', type: 'multiple-choice', options: ['同軸ケーブル', 'メタルケーブル', '光ファイバー', '無線LAN'], answer: '光ファイバー', explanation: 'PRIは高速・大容量の通信を行うため、メタルケーブルではなく光ファイバーを使用することが一般的です。' },
+            { question: 'CPUの別名として正しいものを2つ選びなさい。', type: 'multiple-choice-multi', options: ['中央処理装置', '主記憶装置', '中央演算処理装置', '補助記憶装置'], answers: ['中央処理装置', '中央演算処理装置'], explanation: 'CPUは Central Processing Unit の略で、中央処理装置や中央演算処理装置と訳されます。' }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedAnswers = [];
+
+        const questionNumberEl = document.getElementById('question-number');
+        const questionTextEl = document.getElementById('question-text');
+        const answerOptionsEl = document.getElementById('answer-options');
+        const fillBlankAreaEl = document.getElementById('fill-in-the-blank-area');
+        const shortAnswerAreaEl = document.getElementById('short-answer-area');
+        const feedbackAreaEl = document.getElementById('feedback-area');
+        const explanationAreaEl = document.getElementById('explanation-area');
+        const explanationTextEl = document.getElementById('explanation-text');
+        const progressBarEl = document.getElementById('progress-bar');
+        const submitBtn = document.getElementById('submit-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        function loadQuestion() {
+            feedbackAreaEl.classList.add('hidden');
+            explanationAreaEl.classList.add('hidden');
+            answerOptionsEl.innerHTML = '';
+            fillBlankAreaEl.innerHTML = '';
+            shortAnswerAreaEl.innerHTML = '';
+            selectedAnswers = [];
+            
+            const currentQuestion = quizData[currentQuestionIndex];
+            questionNumberEl.textContent = currentQuestionIndex + 1;
+            
+            progressBarEl.style.width = `${((currentQuestionIndex) / quizData.length) * 100}%`;
+
+            if (currentQuestion.type === 'multiple-choice' || currentQuestion.type === 'multiple-choice-multi') {
+                questionTextEl.textContent = currentQuestion.question;
+                currentQuestion.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.className = 'quiz-option block w-full p-3 border-2 border-gray-300 rounded-lg text-left hover:bg-blue-100 hover:border-blue-400';
+                    button.onclick = () => selectOption(button, option, currentQuestion.type === 'multiple-choice-multi');
+                    answerOptionsEl.appendChild(button);
+                });
+            } else if (currentQuestion.type === 'fill-in-the-blank') {
+                const parts = currentQuestion.question.split('(______)');
+                questionTextEl.innerHTML = `${parts[0]} <input type="text" id="fill-in-input-1" class="w-24 p-1 border-b-2 border-gray-400 focus:border-blue-500 outline-none text-center"> ${parts[1] || ''}`;
+            } else if (currentQuestion.type === 'fill-in-the-blank-multi') {
+                 const parts = currentQuestion.question.split('(______)');
+                 questionTextEl.innerHTML = `${parts[0]} <input type="text" id="fill-in-input-1" class="w-24 p-1 border-b-2 border-gray-400 focus:border-blue-500 outline-none text-center"> ${parts[1]} <input type="text" id="fill-in-input-2" class="w-24 p-1 border-b-2 border-gray-400 focus:border-blue-500 outline-none text-center"> ${parts[2] || ''}`;
+            } else if (currentQuestion.type === 'short-answer') {
+                 questionTextEl.textContent = currentQuestion.question;
+                 shortAnswerAreaEl.innerHTML = `<textarea id="short-answer-input" class="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 outline-none" rows="3" placeholder="ここに回答を入力"></textarea>`;
+            }
+
+            submitBtn.classList.remove('hidden');
+            nextBtn.classList.add('hidden');
+        }
+
+        function selectOption(button, option, isMulti) {
+            if (isMulti) {
+                button.classList.toggle('selected');
+                if (selectedAnswers.includes(option)) {
+                    selectedAnswers = selectedAnswers.filter(a => a !== option);
+                } else {
+                    selectedAnswers.push(option);
+                }
+            } else {
+                 document.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+                 button.classList.add('selected');
+                 selectedAnswers = [option];
+            }
+        }
+
+        submitBtn.addEventListener('click', () => {
+            const currentQuestion = quizData[currentQuestionIndex];
+            let isCorrect = false;
+
+            if (currentQuestion.type === 'multiple-choice') {
+                isCorrect = selectedAnswers.length === 1 && selectedAnswers[0] === currentQuestion.answer;
+            } else if (currentQuestion.type === 'multiple-choice-multi') {
+                isCorrect = selectedAnswers.length === currentQuestion.answers.length && currentQuestion.answers.every(a => selectedAnswers.includes(a));
+            } else if (currentQuestion.type === 'fill-in-the-blank') {
+                const userAnswer = document.getElementById('fill-in-input-1').value.trim();
+                // "2024年"のように入力されても正解になるように、部分一致で判定
+                isCorrect = userAnswer.toLowerCase().includes(currentQuestion.answer.toLowerCase());
+            } else if (currentQuestion.type === 'fill-in-the-blank-multi') {
+                const answer1 = document.getElementById('fill-in-input-1').value.trim().toLowerCase();
+                const answer2 = document.getElementById('fill-in-input-2').value.trim().toLowerCase();
+                const correctAnswers = currentQuestion.answers.map(a => a.toLowerCase());
+                isCorrect = (answer1.includes(correctAnswers[0]) && answer2.includes(correctAnswers[1])) || (answer1.includes(correctAnswers[1]) && answer2.includes(correctAnswers[0]));
+            } else if (currentQuestion.type === 'short-answer') {
+                 const userAnswer = document.getElementById('short-answer-input').value.trim();
+                // キーワードが含まれているかで判定
+                const keywords = (currentQuestion.answer || '').toLowerCase().split('、').filter(Boolean);
+                if (keywords.length > 0) {
+                    isCorrect = keywords.every(keyword => userAnswer.toLowerCase().includes(keyword));
+                } else {
+                    isCorrect = userAnswer.toLowerCase().includes((currentQuestion.answer || '').toLowerCase());
+                }
+            }
+
+            feedbackAreaEl.classList.remove('hidden');
+            explanationAreaEl.classList.remove('hidden');
+            
+            const correctAnswerText = Array.isArray(currentQuestion.answer || currentQuestion.answers) ? (currentQuestion.answer || currentQuestion.answers).join('、') : currentQuestion.answer;
+            explanationTextEl.innerHTML = `<strong>正解:</strong> ${correctAnswerText}<br>${currentQuestion.explanation}`;
+
+            if (isCorrect) {
+                score++;
+                feedbackAreaEl.textContent = '正解！';
+                feedbackAreaEl.className = 'mt-4 p-4 rounded-lg text-center font-bold bg-green-100 text-green-700';
+            } else {
+                feedbackAreaEl.textContent = '不正解';
+                feedbackAreaEl.className = 'mt-4 p-4 rounded-lg text-center font-bold bg-red-100 text-red-700';
+            }
+            
+            if (currentQuestion.type.startsWith('multiple-choice')) {
+                const correct = currentQuestion.answers || [currentQuestion.answer];
+                document.querySelectorAll('.quiz-option').forEach(opt => {
+                    if (correct.includes(opt.textContent)) opt.classList.add('correct');
+                    else if (opt.classList.contains('selected')) opt.classList.add('incorrect');
+                    opt.disabled = true;
+                });
+            }
+
+            submitBtn.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        });
+
+        function showResults() {
+            document.getElementById('question-area').classList.add('hidden');
+            document.getElementById('submit-btn').classList.add('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+            
+            const resultArea = document.getElementById('result-area');
+            resultArea.classList.remove('hidden');
+            
+            document.getElementById('score').textContent = score * 5;
+            document.getElementById('correct-answers').textContent = score;
+            progressBarEl.style.width = '100%';
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>

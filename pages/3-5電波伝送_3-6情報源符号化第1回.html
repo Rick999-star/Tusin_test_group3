@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第1回 通信3章テスト</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+        .incorrect {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">第1回 通信3章テスト</h1>
+
+        <div id="quiz-container" class="space-y-6">
+            <!-- Questions will be injected here by JavaScript -->
+        </div>
+        <div class="text-center mt-8">
+             <a href="../index.html" class="bg-indigo-600 text-white font-semibold px-6 py-3 rounded-lg shadow-md hover:bg-indigo-700 transition-colors duration-300">ホームに戻る</a>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                type: 'fill',
+                question: 'アナログ信号をデジタル信号に変換するPCM方式の最初のステップは___である。',
+                answer: '標本化'
+            },
+            {
+                type: 'choice',
+                question: 'VHF帯の周波数範囲はどれか？',
+                options: ['3-30MHz', '30-300MHz', '300-3000MHz', '3-30GHz'],
+                answer: '30-300MHz'
+            },
+            {
+                type: 'fill',
+                question: '標本化された信号の振幅を、決められた段階的な数値に近似するプロセスを___という。',
+                answer: '量子化'
+            },
+            {
+                type: 'choice',
+                question: '元の信号に含まれる最高周波数の2倍以上の周波数でサンプリングすれば、元の信号を完全に再現できるという定理は何か？',
+                options: ['フーリエの定理', 'ナイキストの定理', 'シャノンの定理', '標本化定理'],
+                answer: '標本化定理'
+            },
+            {
+                type: 'fill',
+                question: '量子化された整数値を、コンピュータが理解できる2進数に変換するプロセスを___という。',
+                answer: '符号化'
+            },
+            {
+                type: 'choice',
+                question: 'VHF帯の電波伝搬で、見通し距離での伝搬が主となるのは次のうちどれか？',
+                options: ['地表波', '直接波', '電離層反射波', '対流圏波'],
+                answer: '直接波'
+            },
+            {
+                type: 'fill',
+                question: 'サンプリング定理における、最低限必要なサンプリング周波数を___周波数という。',
+                answer: 'ナイキスト'
+            },
+            {
+                type: 'choice',
+                question: 'PCM方式において、元の値と量子化された値の間に生じる誤差を何と呼ぶか？',
+                options: ['標本化誤差', '符号化ノイズ', '量子化ノイズ', '伝送エラー'],
+                answer: '量子化ノイズ'
+            },
+            {
+                type: 'fill',
+                question: '春から夏の日中にE層付近に突発的に発生する電子密度の高い層を___層という。',
+                answer: 'スポラディックE'
+            },
+            {
+                type: 'choice',
+                question: '最高周波数が4kHzのアナログ信号を完全に再現するために必要なサンプリング周波数は最低でも何kHzか？',
+                options: ['2kHz', '4kHz', '8kHz', '16kHz'],
+                answer: '8kHz'
+            },
+            {
+                type: 'fill',
+                question: 'PCMは___の略称である。',
+                answer: 'パルス符号変調'
+            },
+            {
+                type: 'choice',
+                question: 'VHF帯の電波が山の裏側にも到達する現象は何か？',
+                options: ['山岳反射', '山岳回折', '山岳散乱', '山岳吸収'],
+                answer: '山岳回折'
+            },
+            {
+                type: 'fill',
+                question: '1秒間にサンプリングする回数を示す頻度を___周波数という。',
+                answer: 'サンプリング'
+            },
+            {
+                type: 'choice',
+                question: '降雨による減衰が最も大きい周波数帯はどれか？',
+                options: ['VHF帯', 'UHF帯', 'SHF帯', 'EHF帯'],
+                answer: 'SHF帯'
+            },
+            {
+                type: 'fill',
+                question: '標本化回路の出力は、パルスの振幅を変化させて情報を伝える___変調(PAM)波である。',
+                answer: 'パルス振幅'
+            },
+            {
+                type: 'choice',
+                question: '日本の地上デジタルテレビ放送で使用されている周波数帯はどれか？',
+                options: ['VHF帯', 'UHF帯', 'SHF帯', 'HF帯'],
+                answer: 'UHF帯'
+            },
+             {
+                type: 'fill',
+                question: '量子化ステップの数が___ほど量子化雑音は小さくなる。',
+                answer: '多い'
+            },
+            {
+                type: 'choice',
+                question: '信号レベルの低い領域を細かく、高い領域は粗く量子化する方法を何というか？',
+                options: ['直線量子化', '差分量子化', '予測符号化', '非直線量子化'],
+                answer: '非直線量子化'
+            },
+            {
+                type: 'fill',
+                question: 'サンプリング時間はサンプリング周波数の___である。',
+                answer: '逆数'
+            },
+            {
+                type: 'choice',
+                question: 'スポラディックE層が発生すると、通常は電離層を突き抜けるどの周波数帯の電波も反射させることがあるか？',
+                options: ['LF帯', 'MF帯', 'HF帯', 'VHF帯'],
+                answer: 'VHF帯'
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((q, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'bg-white p-6 rounded-lg shadow-md';
+            
+            let content = '';
+            
+            if (q.type === 'fill') {
+                content += `<p class="font-semibold text-lg mb-4">${index + 1}. ${q.question.replace('___', `<input type="text" id="q${index}" class="border-b-2 border-gray-300 focus:border-blue-500 outline-none">`)}</p>`;
+            } else { // 'choice'
+                content += `<p class="font-semibold text-lg mb-4">${index + 1}. ${q.question}</p>`;
+                content += '<div class="space-y-2">';
+                q.options.forEach(option => {
+                    content += `<div><label class="inline-flex items-center"><input type="radio" name="q${index}" value="${option}" class="form-radio h-5 w-5 text-blue-600"> <span class="ml-2">${option}</span></label></div>`;
+                });
+                content += '</div>';
+            }
+            
+            content += `<div class="mt-4"><button onclick="checkAnswer(${index})" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">解答</button></div>`;
+            content += `<p id="result${index}" class="mt-2"></p>`;
+
+            questionDiv.innerHTML = content;
+            quizContainer.appendChild(questionDiv);
+        });
+
+        function checkAnswer(index) {
+            const q = quizData[index];
+            const resultEl = document.getElementById(`result${index}`);
+            let userAnswer;
+
+            if (q.type === 'fill') {
+                userAnswer = document.getElementById(`q${index}`).value.trim();
+            } else {
+                const radioButtons = document.getElementsByName(`q${index}`);
+                for (const button of radioButtons) {
+                    if (button.checked) {
+                        userAnswer = button.value;
+                        break;
+                    }
+                }
+            }
+
+            if (userAnswer && userAnswer.toLowerCase() === q.answer.toLowerCase()) {
+                resultEl.textContent = '正解！';
+                resultEl.className = 'mt-2 correct';
+            } else {
+                resultEl.textContent = `不正解。正解は「${q.answer}」です。`;
+                resultEl.className = 'mt-2 incorrect';
+            }
+        }
+    </script>
+</body>
+</html>
+

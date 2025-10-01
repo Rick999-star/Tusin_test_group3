@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第2回: 総合テスト</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        .quiz-option.selected {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #2563eb;
+        }
+        .quiz-option.correct {
+            background-color: #22c55e;
+            color: white;
+        }
+        .quiz-option.incorrect {
+            background-color: #ef4444;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div id="quiz-container" class="w-full max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+        <div id="question-area">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">第2回: 通信・ハードウェア総合テスト</h1>
+            <p class="text-gray-600 mb-4">全20問</p>
+            <div class="h-2 w-full bg-gray-200 rounded-full mb-6">
+                <div id="progress-bar" class="h-2 bg-green-500 rounded-full transition-all duration-300" style="width: 0%;"></div>
+            </div>
+
+            <p class="text-lg text-gray-700 mb-1 font-semibold">
+                <span id="question-number"></span>. <span id="question-text"></span>
+            </p>
+            <div id="answer-options" class="mt-4 space-y-3">
+                <!-- Answers will be loaded here -->
+            </div>
+            <div id="fill-in-the-blank-area" class="mt-4">
+                 <!-- Fill in the blank input will be loaded here -->
+            </div>
+
+            <div id="feedback-area" class="mt-4 p-4 rounded-lg text-center font-bold hidden"></div>
+            
+            <div id="explanation-area" class="mt-4 p-4 bg-gray-50 rounded-lg hidden">
+                <h3 class="font-bold text-gray-800">解説</h3>
+                <p id="explanation-text" class="text-gray-700 mt-1"></p>
+            </div>
+
+        </div>
+
+        <div id="result-area" class="hidden text-center">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">テスト終了！</h2>
+            <p class="text-xl text-gray-700 mb-2">あなたのスコアは...</p>
+            <p class="text-5xl font-bold text-green-500 mb-6"><span id="score"></span> / 100</p>
+            <p class="text-lg text-gray-600 mb-6"><span id="correct-answers"></span>問正解 / 20問中</p>
+            <button onclick="location.reload()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition-transform transform hover:scale-105">もう一度挑戦する</button>
+            <a href="../index.html" class="mt-4 inline-block text-green-600 hover:underline">トップページに戻る</a>
+        </div>
+        
+        <div class="mt-6 flex justify-end">
+            <button id="submit-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105">解答</button>
+            <button id="next-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg hidden transition-transform transform hover:scale-105">次の問題へ</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            { question: '一次群速度インタフェース(PRI)のBチャネルは何本で構成されるか？', type: 'multiple-choice', options: ['2本', '23本', '1本', '64本'], answer: '23本', explanation: 'PRIは大規模利用を想定しており、23本のBチャネルと1本のDチャネルで構成されます。' },
+            { question: 'コンピュータの五大装置のうち、プログラムの命令を解釈し、他の装置に指示を出す役割を持つものはどれか？', type: 'multiple-choice', options: ['演算装置', '主記憶装置', '制御装置', '入力装置'], answer: '制御装置', explanation: '制御装置はコンピュータの頭脳として、全体の動作をコントロールします。' },
+            { question: 'PC本体とディスプレイを接続するインターフェースで、デジタル信号とアナログ信号の両方を扱える規格はどれか？', type: 'multiple-choice', options: ['DVI-D', 'DVI-A', 'DVI-I', 'HDMI'], answer: 'DVI-I', explanation: 'DVI-Iの「I」はIntegrated(統合された)を意味し、デジタル(D)とアナログ(A)の両方の信号に対応しています。' },
+            { question: 'キャッシュメモリへの書き込み方式で、書き込み性能は高いがデータの整合性管理が複雑になる方式は (____________) 方式である。', type: 'fill-in-the-blank', answer: 'ライトバック', explanation: 'ライトバック方式は、CPUからの書き込みを一旦キャッシュメモリで受け止め、即座にメインメモリに書き込まないため高速です。' },
+            { question: 'ISDNの一次群速度インタフェース(PRI)のDチャネルの伝送速度は (______) kbpsである。', type: 'fill-in-the-blank', answer: '64', explanation: 'PRIのDチャネルはBRIとは異なり、伝送速度は64kbpsです。' },
+            { question: 'コンピュータの記憶装置のうち、電源を切ると内容が消えてしまう揮発性メモリはどちらか？', type: 'multiple-choice', options: ['主記憶装置 (DRAM)', '補助記憶装置 (HDD/SSD)', '両方とも揮発性', '両方とも不揮発性'], answer: '主記憶装置 (DRAM)', explanation: '主記憶装置に使われるDRAMは揮発性メモリです。補助記憶装置は電源を切っても内容が消えない不揮発性です。' },
+            { question: 'ISDNの一次群速度インタフェースであるPRIの正式名称として正しいものはどれか？', type: 'multiple-choice', options: ['Primary Rate Interface', 'Private Rate Interface', 'Public Rate Interface', 'Protocol Rate Interface'], answer: 'Primary Rate Interface', explanation: 'PRIはPrimary Rate Interfaceの略で、「一次群速度インターフェース」と訳されます。' },
+            { question: 'CPUが探しているデータがキャッシュメモリに存在しない状態を (____________) という。', type: 'fill-in-the-blank', answer: 'キャッシュミス', explanation: 'キャッシュミスが発生した場合、CPUはより低速な主記憶装置にデータを取りに行くため、処理速度が低下します。' },
+            { question: 'USB3.0の転送速度は、USB2.0の約何倍か？', type: 'multiple-choice', options: ['約2倍', '約5倍', '約10倍', '約100倍'], answer: '約10倍', explanation: 'USB3.0の理論上の最大転送速度は5Gbpsで、USB2.0の480Mbpsの約10倍です。' },
+            { question: '映像と音声を1本のケーブルでデジタル伝送できる規格はどれか？', type: 'multiple-choice', options: ['DVI', 'VGA', 'HDMI', 'SATA'], answer: 'HDMI', explanation: 'HDMI (High-Definition Multimedia Interface)は、映像と音声、制御信号をまとめて伝送できるため、AV機器で広く普及しています。' },
+            { question: 'ISDNにおいて、音声やデータなど、ユーザー自身の情報を伝送するチャネルは (______) チャネルと呼ばれる。', type: 'fill-in-the-blank', answer: 'B', explanation: 'BチャネルはBearer Channelの略で、ユーザーの情報を運ぶ役割を持ちます。' },
+            { question: 'コンピュータの五大装置に含まれないものはどれか？', type: 'multiple-choice', options: ['制御装置', '演算装置', '記憶装置', '電源装置'], answer: '電源装置', explanation: 'コンピュータの五大装置は「制御装置」「演算装置」「記憶装置」「入力装置」「出力装置」です。電源装置はこれらを動かすために必須ですが、五大装置には含まれません。' },
+            { question: 'CPUと主記憶装置の間に位置する、高速な記憶装置を (____________) という。', type: 'fill-in-the-blank', answer: 'キャッシュメモリ', explanation: 'キャッシュメモリは、CPUと主記憶装置の速度差を埋め、処理性能を向上させるために使用されます。' },
+            { question: '内蔵ハードディスクの接続に主に使用されるインターフェース規格はどれか？', type: 'multiple-choice', options: ['eSATA', 'SATA', 'USB', 'DVI'], answer: 'SATA', explanation: 'SATA (Serial ATA)は、コンピュータの内部でストレージデバイスを接続するための標準的なインターフェースです。eSATAは外付け用です。' },
+            { question: '一次群速度インタフェース(PRI)の最大通信速度は、約 (______) Mbpsである。', type: 'fill-in-the-blank', answer: '1.5', explanation: 'PRIは23本のBチャネル(64kbps×23)と1本のDチャネル(64kbps)で構成され、合計約1.5Mbpsの通信が可能です。' },
+            { question: 'コンピュータの処理結果を人間が認識できる形（文字や図形など）に変換する装置はどれか？', type: 'multiple-choice', options: ['入力装置', '出力装置', '制御装置', '演算装置'], answer: '出力装置', explanation: 'ディスプレイやプリンタなどが代表的な出力装置です。' },
+            { question: 'キャッシュメモリは一般的に複数の階層を持っており、CPUに近い1次キャッシュは2次キャッシュと比較してどうであるか、正しい記述はどれか。', type: 'multiple-choice', options: ['大容量で高速', '小容量で高速', '大容量で低速', '小容量で低速'], answer: '小容量で高速', explanation: 'CPUに近いほど、より高速ですが容量は小さくなります。1次キャッシュは最も高速・小容量です。' },
+            { question: 'ISDNの基本インターフェース(BRI)で主に利用される伝送媒体は何か？', type: 'multiple-choice', options: ['光ファイバー', '同軸ケーブル', '2線メタルケーブル', '無線'], answer: '2線メタルケーブル', explanation: 'BRIは既存の電話用のアナログ回線(2線メタルケーブル)をそのまま利用できるという特徴がありました。' },
+            { question: '算術演算や論理演算などを実際に行う装置は (______) 装置である。', type: 'fill-in-the-blank', answer: '演算', explanation: '演算装置は、制御装置からの指示に従って、足し算や引き算などの計算を実行します。ALU (Arithmetic Logic Unit)とも呼ばれます。' },
+            { question: '電話の発着信の際に、通話の準備や後処理を制御する仕組みを (______) 制御という。', type: 'fill-in-the-blank', answer: '呼', explanation: '呼制御は、電話回線を接続したり切断したりといった、通話そのもの以外の制御全般を指します。' }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedAnswers = [];
+
+        const questionNumberEl = document.getElementById('question-number');
+        const questionTextEl = document.getElementById('question-text');
+        const answerOptionsEl = document.getElementById('answer-options');
+        const fillBlankAreaEl = document.getElementById('fill-in-the-blank-area');
+        const feedbackAreaEl = document.getElementById('feedback-area');
+        const explanationAreaEl = document.getElementById('explanation-area');
+        const explanationTextEl = document.getElementById('explanation-text');
+        const progressBarEl = document.getElementById('progress-bar');
+        const submitBtn = document.getElementById('submit-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        function loadQuestion() {
+            feedbackAreaEl.classList.add('hidden');
+            explanationAreaEl.classList.add('hidden');
+            answerOptionsEl.innerHTML = '';
+            fillBlankAreaEl.innerHTML = '';
+            selectedAnswers = [];
+            
+            const currentQuestion = quizData[currentQuestionIndex];
+            questionNumberEl.textContent = currentQuestionIndex + 1;
+            
+            progressBarEl.style.width = `${((currentQuestionIndex) / quizData.length) * 100}%`;
+
+            if (currentQuestion.type === 'multiple-choice') {
+                questionTextEl.textContent = currentQuestion.question;
+                currentQuestion.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.className = 'quiz-option block w-full p-3 border-2 border-gray-300 rounded-lg text-left hover:bg-blue-100 hover:border-blue-400';
+                    button.onclick = () => selectOption(button, option);
+                    answerOptionsEl.appendChild(button);
+                });
+            } else if (currentQuestion.type === 'fill-in-the-blank') {
+                const parts = currentQuestion.question.split('(______)');
+                questionTextEl.innerHTML = `${parts[0]} <input type="text" id="fill-in-input-1" class="w-24 p-1 border-b-2 border-gray-400 focus:border-green-500 outline-none text-center"> ${parts[1] || ''}`;
+            }
+
+            submitBtn.classList.remove('hidden');
+            nextBtn.classList.add('hidden');
+        }
+
+        function selectOption(button, option) {
+             document.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+             button.classList.add('selected');
+             selectedAnswers = [option];
+        }
+
+        submitBtn.addEventListener('click', () => {
+            const currentQuestion = quizData[currentQuestionIndex];
+            let isCorrect = false;
+
+            if (currentQuestion.type === 'multiple-choice') {
+                isCorrect = selectedAnswers.length === 1 && selectedAnswers[0] === currentQuestion.answer;
+            } else if (currentQuestion.type === 'fill-in-the-blank') {
+                const userAnswer = document.getElementById('fill-in-input-1').value.trim();
+                isCorrect = userAnswer.toLowerCase().includes(currentQuestion.answer.toLowerCase());
+            }
+
+            feedbackAreaEl.classList.remove('hidden');
+            explanationAreaEl.classList.remove('hidden');
+            
+            const correctAnswerText = currentQuestion.answer;
+            explanationTextEl.innerHTML = `<strong>正解:</strong> ${correctAnswerText}<br>${currentQuestion.explanation}`;
+
+            if (isCorrect) {
+                score++;
+                feedbackAreaEl.textContent = '正解！';
+                feedbackAreaEl.className = 'mt-4 p-4 rounded-lg text-center font-bold bg-green-100 text-green-700';
+            } else {
+                feedbackAreaEl.textContent = '不正解';
+                feedbackAreaEl.className = 'mt-4 p-4 rounded-lg text-center font-bold bg-red-100 text-red-700';
+            }
+            
+            if (currentQuestion.type === 'multiple-choice') {
+                document.querySelectorAll('.quiz-option').forEach(opt => {
+                    if (opt.textContent === currentQuestion.answer) opt.classList.add('correct');
+                    else if (opt.classList.contains('selected')) opt.classList.add('incorrect');
+                    opt.disabled = true;
+                });
+            }
+
+            submitBtn.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        });
+
+        function showResults() {
+            document.getElementById('question-area').classList.add('hidden');
+            document.getElementById('submit-btn').classList.add('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+            
+            const resultArea = document.getElementById('result-area');
+            resultArea.classList.remove('hidden');
+            
+            document.getElementById('score').textContent = score * 5;
+            document.getElementById('correct-answers').textContent = score;
+            progressBarEl.style.width = '100%';
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
